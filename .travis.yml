@@ -1,0 +1,56 @@
+# Use new container infrastructure to enable caching
+sudo: false
+
+# Choose a lightweight base image; we provide our own build tools.
+language: generic
+
+env:
+  global: PROJECT_NAME="reer-docker-cleanup"
+
+# Caching so the next build will be fast too.
+cache:
+  directories:
+  - $HOME/.ghc
+  - $HOME/.cabal
+  - $HOME/.stack
+
+matrix:
+  fast_finish: yes
+  include:
+  # linux
+  - env: TARGET="x86_64-unknown-linux"
+  # osx
+  - env: TARGET="x86_64-apple-darwin"
+    os: osx
+
+before_install:
+- export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$HOME/.local/bin:$PATH
+- ./ci/install_stack.sh
+
+install:
+- stack --no-terminal install --install-ghc --only-dependencies
+
+script:
+- stack --no-terminal test
+
+before_deploy:
+  - ci/before_deploy.sh
+
+deploy:
+  api_key:
+    secure: "kpkGkfEawSY1y8QpCp+rqsmEQIgyBjUYg6lL47Zhih3jvqpb/rG1wRyO6wAZxQwdHfAfDm3BP18m1pgn9q5EI5t0uqrw8UH5RIsVw6pXhm6n3t+E0L/biDe6f9vrRiSGxj1WiZcHt3LnQmWuJGASxhvF42EeW0IrOwLfNwlRTKuff+3EDirxxJE4ILKtRLW/PBjHe1lSWiIFCBfmiWZufQlMqnGXAMCmIBoNH2e/kS42rwLHP8NBWV36uHy/esxHD6OPFSewxRvt8tgcH+pAaCUGVNgarD4GLcOOzAolWcEScqKFgFY6DEMN7+jbtVFAEs4uAdAPXN1s9556/D0vfG16QuupqB75sKvKjLZ5PciIchRmjp53+QphgNicYwbDN+t2u1ymHO/NC57pZ3RFr02yuR2PDic4i9SNU0gR2M4yOO1bFznBP6VWuX8gzbjEvhaIfpuTWcjLcoQqqOEYK72f0foxpHwPnb7HIjk4IrzNRzsJwIsuk6Dx+5iKjNFeRMf2SHboof33Tcz1HWrJW69/Ouh5pbNEN4YWUd/l0uY0ivMfuqcRXFb+F/LKgW0s20qVRZeKk+ozU0hE6qRwLzfrvI2Tvi9kOoHn1OEdAWe9eLAVDGj9snvqeD8l9AYawiX8T4j3ghe4hMlh4goGiarhjA/cKbTCg8k7Y2a9AV0="
+  file_glob: true
+  file: build/$PROJECT_NAME-$TRAVIS_TAG-$TARGET*
+  on:
+    tags: true
+  provider: releases
+  skip_cleanup: true
+
+notifications:
+  email: false
+
+branches:
+  only:
+  - master
+  # this is needed to release tags
+  - /^v\d+\.\d+\.\d+.*$/
