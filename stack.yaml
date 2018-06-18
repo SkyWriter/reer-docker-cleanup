@@ -40,7 +40,7 @@ packages:
 # (e.g., acme-missiles-0.3)
 # extra-deps: []
 extra-deps:
-  - git: git@github.com:SkyWriter/docker-hs.git
+  - git: https://github.com/SkyWriter/docker-hs.git
     commit: bf467f7cf98bde3fd9c934a04c5fcb17cb1f28d8
 
 # Override default flag values for local packages and extra-deps
